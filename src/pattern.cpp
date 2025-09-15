@@ -1,9 +1,11 @@
 #include "pattern.h"
 
 #define MAX_COLOR_COUNT 10
+#define MAX_PATTERN_WIDTH 200
+#define MAX_PATTERN_HEIGHT 300
 
 namespace {
-    uint8_t pattern_buffer[100][100];
+    uint8_t pattern_buffer[MAX_PATTERN_HEIGHT][MAX_PATTERN_WIDTH];
     uint16_t colors[MAX_COLOR_COUNT];
     int color_count = 0;
     int pattern_height = 0;
@@ -99,6 +101,9 @@ namespace pattern {
         return pattern_height;
     }
     int new_row(uint16_t *buffer, int size) {
+        if (pattern_height > MAX_PATTERN_HEIGHT) {
+            return 1;
+        }
         if (size > NEEDLE_COUNT) {
             return 1;
         }
@@ -122,7 +127,16 @@ namespace pattern {
         return 0;
     }
 
+    void new_file() {
+        color_count = 0;
+        pattern_height = 0;
+        pattern_width = 0;
+    }
+
     uint8_t get_color(int row, int column) {
+        if (pattern_height == 0) {
+            return settings.invert ? 1 : 0;
+        }
         if (settings.vertical_exp) {
             row = row / 2;
         }

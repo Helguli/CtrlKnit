@@ -87,30 +87,39 @@ namespace {
 
     void * myOpen(const char *filename, int32_t *size) {
         Serial.printf("Attempting to open %s\n", filename);
-        file.open(filename, O_RDONLY);
+        if (!file.open(filename, O_RDONLY)) {
+            return nullptr;
+        }
         *size = file.fileSize();
         return &file;
     }
     void myClose(void *handle) {
-        if (file) file.close();
+        if (file) {
+            file.close();
+        }
     }
-    int32_t myRead(PNGFILE *handle, uint8_t *buffer, int32_t length) {
+
+    int32_t myRead(PNGFILE *pngfile, uint8_t *buffer, int32_t length) {
         if (!file) return 0;
         return file.read(buffer, length);
     }
-    int32_t mySeek(PNGFILE *handle, int32_t position) {
-        if (!file) return 0;
+
+    int32_t mySeek(PNGFILE *pngfile, int32_t position) {
+        if (!file) {
+            return 0;
+        }
         return file.seekSet(position);
     }
 
     // Function to draw pixels to the display
-    void PNGDraw(PNGDRAW *pDraw) {
-        uint16_t usPixels[320];
+    int PNGDraw(PNGDRAW *pDraw) {
+        static uint16_t usPixels[320];
         png.getLineAsRGB565(pDraw, usPixels, PNG_RGB565_LITTLE_ENDIAN, 0xffffffff);
         tft.drawRGBBitmap(0, pDraw->y + TEXT_HEIGHT * TEXT_SIZE * 2, usPixels, pDraw->iWidth, 1);
-        Serial.println(pattern::new_row(usPixels, pDraw->iWidth));
-        Serial.printf("%d;",pDraw->y);
+        pattern::new_row(usPixels, pDraw->iWidth);
+        return 1;
     }
+
 
     void display_menu() {
         tft.fillScreen(ST77XX_BLACK);
@@ -133,12 +142,10 @@ namespace ui {
         Serial.printf("MOSI: %d\n", int(MOSI));
         Serial.printf("SCK:  %d\n", int(SCK));
         Serial.printf("SS:   %d\n", int(SS));
-        //tft.initR(INITR_BLACKTAB);      // Init ST7735S chip, black tab
-        tft.init(ST7796S_TFTWIDTH, ST7796S_TFTHEIGHT, 0, 0, ST7796S_BGR);         // Init ST7735S chip, black tab
+        tft.init(ST7796S_TFTWIDTH, ST7796S_TFTHEIGHT, 0, 0, ST7796S_BGR);
         
         ledcSetup(LEDC_CHANNEL, 2000 /*Hz*/, 8);
         ledcAttachPin(BUZZER_PIN, LEDC_CHANNEL);
-        //ledcWriteNote(LEDC_CHANNEL, melody[i], 4);
         if (ledcWriteNote(LEDC_CHANNEL, NOTE_A, 5)) {
             delay(50);
         }
@@ -189,18 +196,6 @@ namespace ui {
         tft.setTextColor(ST77XX_RED);
         tft.println("SD card mounted. :)");
 
-        
-  
-
-        //while (!SD.begin(10)) {
-        //    Serial.println("Unable to access SD Card");
-        //    Serial.println(MOSI);//11
-        //    Serial.println(MISO);//13
-        //    Serial.println(SCK);//12
-        //    Serial.println(SS);//10
-        //    tft.println("Unable to access SD Card");
-        //    delay(1000);
-        //}
         readDirectory("/");
         displayDirectory();
     }
@@ -208,26 +203,19 @@ namespace ui {
 // Functions to access a file on the SD card
 
     void readDirectory(const char *dirname) {
-        Serial.println("1");
         FsFile dir;
         if (!dir.open(dirname)) {
             tft.printf("Could not open directory:\n%s\n", dirname);
         }
-        Serial.println("2");
         entryCount = 0;
         char arr[200];
-        Serial.println("3");
         FsFile f;
-        Serial.println("3a");
         while (f.openNext(&dir, O_RDONLY)) {
-            Serial.println("3b");
             f.getName(arr, 200);
             entries[entryCount++] = String(arr);
             f.close();
         }
-        Serial.println("4");
         dir.close();
-        Serial.println("5");
     }
 
     /*
@@ -270,6 +258,7 @@ namespace ui {
             tft.println(name);
             String strname = name;
             strname = "/" + strname;
+            pattern::new_file();
             int rc = png.open(strname.c_str(), myOpen, myClose, myRead, mySeek, PNGDraw);
             if (rc == PNG_SUCCESS) {
                 Serial.printf("image specs: (%d x %d), %d bpp, pixel type: %d\n", png.getWidth(), png.getHeight(), png.getBpp(), png.getPixelType());
@@ -290,7 +279,6 @@ namespace ui {
                 selected_menu--;
                 display_menu();
             }
-
         } else {
             if (selectedIndex > 0) {
                 selectedIndex--;
@@ -304,7 +292,6 @@ namespace ui {
                 selected_menu++;
                 display_menu();
             }
-
         } else {
             if (selectedIndex < entryCount - 1) {
                 selectedIndex++;
@@ -316,7 +303,6 @@ namespace ui {
         if (menu) {
             pattern::switch_option(selected_menu);
             display_menu();
-
         } else {
             ui::openPNG();
         }

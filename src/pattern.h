@@ -21,5 +21,6 @@ namespace pattern {
     int width();
     int height();
     int new_row(uint16_t *buffer, int size);
+    void new_file();
     uint8_t IRAM_ATTR get_color(int row, int column);
 }

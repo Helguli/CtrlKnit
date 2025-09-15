@@ -198,10 +198,6 @@ void setup() {
     timerAlarmEnable(timer);
 
     Serial.begin(115200);
-    while (!Serial) {
-        delay(10);  // Wait for USB serial to connect
-    }
-    Serial.println("USB CDC Serial working!");
     ui::ui_setup();
 
 }
