@@ -86,3 +86,9 @@ I used an LCD screen with 320x480 resolution, and ST7796S driver chip.
 | IO15      | SD SS       |
 | IO14      | SD SCK      |
 
+
+And here is a picture of the board.
+
+![board](pictures/board.jpg "PCB v1")
+
+
