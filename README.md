@@ -43,7 +43,7 @@ The knitting machine has four output signals and one input signal.
 * HOK: Carriage direction. Whether the carriage moves to the right or to the left. Left is low.
 * DOB: Data output buffer. The carriage uses this signal to select the needles.
 
-The knitting machine has a 7-pin DIN (DIN 45329) connector. The following picture shows the wiring of the **socket**, looking at it from the **front**. **Do not connect the 16 V unless you are absolutely sure!** You may damage the carriage.
+The knitting machine has a 7-pin DIN (DIN 45329) connector. The following picture shows the wiring of the **socket**, looking at it from the **front**. **Do not power the 16 V unless you are absolutely sure!** You may damage the carriage.
 
 ![din](pictures/DIN.png "DIN connector")
 
@@ -56,6 +56,10 @@ The carriage can **overheat** when 16V is given for a long time. To prevent that
 ![driver](pictures/output_driver.png "Output driver")
 
 ### Connections
+
+The buttons, encoder signals and the knitting machine's ND1, KSL, HOK, CCP outputs need **pull-up resistors**, as the ESP32 doesn't have internal pull-ups.
+
+I used an LCD screen with 320x480 resolution, and ST7796S driver chip.
 
 | ESP32 pin | Description |
 | --------- | ----------- |
